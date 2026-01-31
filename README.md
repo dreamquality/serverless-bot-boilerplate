@@ -1,5 +1,11 @@
 # Serverless Telegram Bot Boilerplate 🤖
 
+[![CI](https://github.com/dreamquality/serverless-bot-boilerplate/actions/workflows/ci.yml/badge.svg)](https://github.com/dreamquality/serverless-bot-boilerplate/actions/workflows/ci.yml)
+[![Code Quality](https://github.com/dreamquality/serverless-bot-boilerplate/actions/workflows/code-quality.yml/badge.svg)](https://github.com/dreamquality/serverless-bot-boilerplate/actions/workflows/code-quality.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
+
 Advanced Telegram bot boilerplate with TypeScript, XState FSM, AI integration (OpenAI/OpenRouter/Claude), and serverless deployment on **Vercel** or **Supabase Edge Functions**. Supports multi-user contexts with persistent state storage in Supabase.
 
 ## 🚀 Automated Setup (Recommended)
@@ -563,6 +569,51 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+## 🔄 CI/CD & Quality Gates
+
+This project includes comprehensive GitHub Actions workflows for continuous integration and quality assurance:
+
+### Automated Quality Checks
+
+- ✅ **Linting** - ESLint checks on all TypeScript files
+- ✅ **Type Checking** - TypeScript strict mode validation
+- ✅ **Testing** - Jest unit tests with coverage reporting
+- ✅ **Coverage Thresholds** - Enforced at 70% statements, 60% branches, 70% functions, 70% lines
+- ✅ **Security Scanning** - npm audit for vulnerabilities
+- ✅ **Shell Script Validation** - ShellCheck for bash scripts
+- ✅ **Build Verification** - TypeScript compilation check
+- ✅ **Multi-version Testing** - Tests on Node.js 18.x and 20.x
+
+### Quality Gates for Pull Requests
+
+All PRs must pass:
+- Linting without errors
+- Type checking without errors
+- All tests passing with minimum coverage
+- Build succeeds without warnings
+- No high/critical security vulnerabilities
+- Valid shell script syntax
+
+### Running Checks Locally
+
+Before submitting a PR, run:
+
+```bash
+# Run all checks
+npm run validate
+
+# Or individually:
+npm run lint          # Check code style
+npm run type-check    # Check TypeScript types
+npm test              # Run tests
+npm run test:coverage # Run tests with coverage
+npm run build         # Build project
+```
+
+See [CI_CD.md](CI_CD.md) for complete documentation on CI/CD pipelines.
 
 ## 📄 License
 

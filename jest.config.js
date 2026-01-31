@@ -12,5 +12,14 @@ module.exports = {
     '!src/**/*.test.ts',
     '!src/**/*.spec.ts',
   ],
+  coverageThresholds: {
+    global: {
+      statements: 70,
+      branches: 60,
+      functions: 70,
+      lines: 70,
+    },
+  },
+  coverageReporters: ['text', 'lcov', 'json-summary'],
   moduleFileExtensions: ['ts', 'js', 'json'],
 };
