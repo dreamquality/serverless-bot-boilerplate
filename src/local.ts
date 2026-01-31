@@ -1,5 +1,4 @@
-import express from 'express';
-import TelegramBot from 'node-telegram-bot-api';
+import express, { Request, Response } from 'express';
 import { BotHandler } from './services/botHandler';
 import { loadConfig } from './utils/config';
 import { logger } from './utils/logger';
@@ -31,7 +30,7 @@ async function startLocalServer() {
     logger.info('Bot started in polling mode');
 
     // Listen for messages
-    bot.on('message', async (message) => {
+    bot.on('message', async (message: any) => {
       try {
         await botHandler.handleMessage(message);
       } catch (error) {
@@ -40,7 +39,7 @@ async function startLocalServer() {
     });
 
     // Listen for polling errors
-    bot.on('polling_error', (error) => {
+    bot.on('polling_error', (error: any) => {
       logger.error('Polling error:', error);
     });
 
@@ -49,12 +48,12 @@ async function startLocalServer() {
     app.use(express.json());
 
     // Health check endpoint
-    app.get('/health', (req, res) => {
+    app.get('/health', (_req: Request, res: Response) => {
       res.json({ status: 'ok', mode: 'polling' });
     });
 
     // Webhook endpoint for testing
-    app.post('/api/webhook', async (req, res) => {
+    app.post('/api/webhook', async (req: Request, res: Response) => {
       try {
         const message = req.body.message;
         if (message) {

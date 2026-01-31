@@ -132,9 +132,9 @@ export const botMachine = createMachine(
  * Create a new bot machine instance with initial context
  */
 export function createBotMachineInstance(
-  userId: number,
-  chatId: number,
-  conversationHistory: any[] = []
+  _userId: number,
+  _chatId: number,
+  _conversationHistory: any[] = []
 ) {
   return botMachine.provide({
     actions: {

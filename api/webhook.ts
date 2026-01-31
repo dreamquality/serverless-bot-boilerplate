@@ -1,5 +1,4 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { Message } from 'node-telegram-bot-api';
 import { BotHandler } from '../src/services/botHandler';
 import { loadConfig } from '../src/utils/config';
 import { logger } from '../src/utils/logger';
@@ -28,7 +27,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ ok: true });
     }
 
-    const message: Message = update.message;
+    const message: any = update.message;
 
     // Load configuration
     const config = loadConfig();

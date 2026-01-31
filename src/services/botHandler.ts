@@ -1,4 +1,4 @@
-import TelegramBot, { Message } from 'node-telegram-bot-api';
+import TelegramBot from 'node-telegram-bot-api';
 import { createActor } from 'xstate';
 import { botMachine } from '../machines/botMachine';
 import { AIService } from './aiService';
@@ -14,10 +14,8 @@ export class BotHandler {
   private bot: TelegramBot;
   private aiService: AIService;
   private dbService: DatabaseService;
-  private config: BotConfig;
 
   constructor(config: BotConfig) {
-    this.config = config;
     this.bot = new TelegramBot(config.telegramToken);
     this.aiService = new AIService(config.aiConfig);
     this.dbService = new DatabaseService(config.supabase.url, config.supabase.key);
@@ -33,7 +31,7 @@ export class BotHandler {
   /**
    * Handle incoming Telegram message
    */
-  async handleMessage(message: Message): Promise<void> {
+  async handleMessage(message: any): Promise<void> {
     try {
       const userId = message.from?.id;
       const chatId = message.chat.id;
@@ -172,7 +170,7 @@ export class BotHandler {
   /**
    * Handle /start command
    */
-  private async handleStartCommand(chatId: number, userId: number, message: Message): Promise<void> {
+  private async handleStartCommand(chatId: number, userId: number, message: any): Promise<void> {
     await this.dbService.upsertUserContext({
       userId,
       chatId,

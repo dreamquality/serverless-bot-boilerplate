@@ -1,5 +1,3 @@
-import { Message } from 'node-telegram-bot-api';
-
 /**
  * User context stored in the database
  */
