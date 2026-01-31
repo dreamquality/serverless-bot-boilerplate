@@ -12,8 +12,10 @@ module.exports = {
     '!src/**/*.test.ts',
     '!src/**/*.spec.ts',
     '!src/local.ts',
-    '!src/types/**',
-    '!src/services/**',
+    '!src/types/index.ts',
+    '!src/services/aiService.ts',
+    '!src/services/botHandler.ts',
+    '!src/services/databaseService.ts',
   ],
   coverageThreshold: {
     global: {
@@ -23,6 +25,6 @@ module.exports = {
       lines: 60,
     },
   },
-  coverageReporters: ['text', 'lcov', 'json-summary'],
+  coverageReporters: ['text', 'lcov', 'json-summary', 'json'],
   moduleFileExtensions: ['ts', 'js', 'json'],
 };
