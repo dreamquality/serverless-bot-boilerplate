@@ -54,9 +54,12 @@ update_env_var() {
     local key=$1
     local value=$2
     
+    # Escape special characters in value for safe replacement
+    local escaped_value=$(printf '%s\n' "$value" | sed 's/[&/\]/\\&/g')
+    
     if grep -q "^${key}=" .env; then
-        # Update existing
-        sed -i "s|^${key}=.*|${key}=${value}|" .env
+        # Update existing - use portable sed with temp file
+        sed "s|^${key}=.*|${key}=${escaped_value}|" .env > .env.tmp && mv .env.tmp .env
     else
         # Add new
         echo "${key}=${value}" >> .env
@@ -115,7 +118,7 @@ case $choice in
         print_success "Supabase configuration updated!"
         ;;
     7)
-        read -p "$(echo -e ${CYAN}Enable debug mode? (true/false): ${NC})" debug
+        read -p "$(echo -e ${CYAN}'Enable debug mode? (true/false): '${NC})" debug
         update_env_var "DEBUG" "$debug"
         print_success "Debug mode updated!"
         ;;

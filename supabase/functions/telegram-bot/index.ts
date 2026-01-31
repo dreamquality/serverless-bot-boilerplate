@@ -52,6 +52,15 @@ serve(async (req) => {
       throw new Error('Missing required environment variables')
     }
 
+    // Validate AI provider is supported
+    if (AI_PROVIDER !== 'openai') {
+      throw new Error(`AI provider "${AI_PROVIDER}" is not supported in edge function. Only "openai" is currently supported.`)
+    }
+
+    if (!OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY is required when AI_PROVIDER is "openai"')
+    }
+
     // Handle special commands
     if (text === '/start') {
       await sendTelegramMessage(TELEGRAM_BOT_TOKEN, chatId, 
@@ -65,6 +74,20 @@ serve(async (req) => {
     if (text === '/help') {
       await sendTelegramMessage(TELEGRAM_BOT_TOKEN, chatId, 
         'Available commands:\n/start - Start\n/help - Help\n/clear - Clear history\n\nJust send me any message!')
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (text === '/clear') {
+      const supabaseClient = createSupabaseClient(SUPABASE_URL, SUPABASE_KEY)
+      await updateUserContext(supabaseClient, userId, chatId, {
+        conversation_history: [],
+        state: 'idle',
+      })
+      await sendTelegramMessage(TELEGRAM_BOT_TOKEN, chatId, 
+        'Conversation history cleared! ✨')
       return new Response(JSON.stringify({ ok: true }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
@@ -160,7 +183,26 @@ async function getUserContext(client: any, userId: number, chatId: number) {
     }
   )
   
+  if (!response.ok) {
+    let errorBody = ''
+    try {
+      errorBody = await response.text()
+    } catch {
+      // ignore errors while reading the error body
+    }
+    throw new Error(
+      `Failed to fetch user context: ${response.status} ${response.statusText} - ${errorBody}`,
+    )
+  }
+
   const data = await response.json()
+
+  if (!Array.isArray(data)) {
+    throw new Error(
+      `Unexpected user context response format: expected an array, got ${typeof data}`,
+    )
+  }
+  
   return data[0] || null
 }
 
@@ -238,7 +280,7 @@ async function getAIResponse(
     return data.choices[0]?.message?.content || 'Sorry, I could not generate a response.'
   }
 
-  return 'AI provider not supported in edge function yet.'
+  throw new Error(`AI provider not supported in edge function: ${provider}`)
 }
 
 async function sendTelegramMessage(token: string, chatId: number, text: string) {

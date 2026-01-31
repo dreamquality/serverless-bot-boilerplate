@@ -76,14 +76,14 @@ export class BotHandler {
       }
 
       // Create and start FSM actor
-      const actor = createActor(botMachine, {
-        input: {
+      const actor = createActor(
+        botMachine.withContext({
           userId,
           chatId,
           message: '',
           conversationHistory: userContext.conversationHistory,
-        },
-      });
+        })
+      );
 
       actor.start();
 
@@ -115,13 +115,13 @@ export class BotHandler {
         await this.dbService.addConversationMessage(userId, chatId, {
           role: 'user',
           content: text,
-          timestamp: new Date(),
+          timestamp: new Date().toISOString(),
         });
 
         await this.dbService.addConversationMessage(userId, chatId, {
           role: 'assistant',
           content: aiResponse.content,
-          timestamp: new Date(),
+          timestamp: new Date().toISOString(),
         });
 
         // Send response to user

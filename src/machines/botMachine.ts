@@ -131,22 +131,28 @@ export const botMachine = createMachine(
 /**
  * Create a new bot machine instance with initial context
  * 
- * @param _userId - User ID (reserved for future use)
- * @param _chatId - Chat ID (reserved for future use)
- * @param _conversationHistory - Conversation history (reserved for future use)
- * @returns A configured bot machine instance
- * 
- * Note: Parameters are currently unused but reserved for future enhancement
- * where initial context can be passed to the machine.
+ * @param userId - User ID to initialize context
+ * @param chatId - Chat ID to initialize context
+ * @param conversationHistory - Conversation history to initialize context
+ * @returns A configured bot machine instance with initial context
  */
 export function createBotMachineInstance(
-  _userId: number,
-  _chatId: number,
-  _conversationHistory: any[] = []
+  userId: number,
+  chatId: number,
+  conversationHistory: any[] = []
 ) {
-  return botMachine.provide({
-    actions: {
-      ...botMachine.implementations.actions,
-    },
-  });
+  return botMachine
+    .withContext({
+      userId,
+      chatId,
+      message: '',
+      aiResponse: undefined,
+      error: undefined,
+      conversationHistory,
+    })
+    .provide({
+      actions: {
+        ...botMachine.implementations.actions,
+      },
+    });
 }

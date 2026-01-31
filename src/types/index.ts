@@ -25,7 +25,7 @@ export type DialogState = 'idle' | 'waiting' | 'processing' | 'responded';
 export interface ConversationMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
-  timestamp: Date;
+  timestamp: string; // ISO 8601 timestamp as stored in Supabase JSONB
 }
 
 /**

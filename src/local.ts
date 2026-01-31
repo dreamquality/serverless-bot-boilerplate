@@ -48,7 +48,8 @@ async function startLocalServer() {
     app.use(express.json());
 
     // Health check endpoint
-    app.get('/health', (_req: Request, res: Response) => {
+    app.get('/health', (req: Request, res: Response) => {
+      void req; // Explicitly mark as intentionally unused
       res.json({ status: 'ok', mode: 'polling' });
     });
 
