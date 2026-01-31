@@ -2,6 +2,30 @@
 
 Get your Telegram bot up and running in 5 minutes!
 
+## 🎯 Automated Setup (Easiest Way)
+
+**Skip manual setup!** Run our interactive wizard:
+
+```bash
+./setup.sh
+```
+
+The script will automatically:
+- Install dependencies
+- Collect all API keys
+- Configure environment
+- Test configuration
+- Deploy to Vercel (optional)
+- Set up webhooks
+
+**Done in under 5 minutes!** ✨
+
+---
+
+## 📋 Manual Setup (Alternative)
+
+If you prefer manual configuration, follow these steps:
+
 ## Prerequisites
 
 - Node.js 18+ installed

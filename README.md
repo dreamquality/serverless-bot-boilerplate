@@ -2,6 +2,30 @@
 
 Advanced Telegram bot boilerplate with TypeScript, XState FSM, AI integration (OpenAI/OpenRouter/Claude), and serverless deployment on Vercel. Supports multi-user contexts with persistent state storage in Supabase.
 
+## 🚀 Automated Setup (Recommended)
+
+**New!** Use our interactive setup script for automatic configuration and deployment:
+
+```bash
+./setup.sh
+```
+
+The script will:
+- ✅ Check prerequisites (Node.js, npm, git)
+- ✅ Install dependencies automatically
+- ✅ Guide you through API key configuration
+- ✅ Set up your .env file
+- ✅ Create Supabase database connection
+- ✅ Choose and configure AI provider (OpenAI/OpenRouter/Claude)
+- ✅ Test your configuration
+- ✅ Deploy to Vercel (optional)
+- ✅ Set up Telegram webhook automatically
+- ✅ Generate deployment instructions
+
+**Just run `./setup.sh` and follow the prompts!**
+
+---
+
 ## ✨ Features
 
 - 🚀 **Serverless Architecture**: Deploy on Vercel with zero infrastructure management
