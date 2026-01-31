@@ -130,6 +130,14 @@ export const botMachine = createMachine(
 
 /**
  * Create a new bot machine instance with initial context
+ * 
+ * @param _userId - User ID (reserved for future use)
+ * @param _chatId - Chat ID (reserved for future use)
+ * @param _conversationHistory - Conversation history (reserved for future use)
+ * @returns A configured bot machine instance
+ * 
+ * Note: Parameters are currently unused but reserved for future enhancement
+ * where initial context can be passed to the machine.
  */
 export function createBotMachineInstance(
   _userId: number,
