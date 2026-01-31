@@ -83,7 +83,7 @@ export const botMachine = createMachine(
               {
                 role: 'user' as const,
                 content: event.message,
-                timestamp: new Date(),
+                timestamp: new Date().toISOString(),
               },
             ];
           }
@@ -104,7 +104,7 @@ export const botMachine = createMachine(
               {
                 role: 'assistant' as const,
                 content: event.response,
-                timestamp: new Date(),
+                timestamp: new Date().toISOString(),
               },
             ];
           }
@@ -137,22 +137,13 @@ export const botMachine = createMachine(
  * @returns A configured bot machine instance with initial context
  */
 export function createBotMachineInstance(
-  userId: number,
-  chatId: number,
-  conversationHistory: any[] = []
+  _userId: number,
+  _chatId: number,
+  _conversationHistory: any[] = []
 ) {
-  return botMachine
-    .withContext({
-      userId,
-      chatId,
-      message: '',
-      aiResponse: undefined,
-      error: undefined,
-      conversationHistory,
-    })
-    .provide({
-      actions: {
-        ...botMachine.implementations.actions,
-      },
-    });
+  return botMachine.provide({
+    actions: {
+      ...botMachine.implementations.actions,
+    },
+  });
 }

@@ -81,15 +81,19 @@ export class BotHandler {
         });
       }
 
-      // Create and start FSM actor
-      const actor = createActor(
-        botMachine.withContext({
-          userId,
-          chatId,
-          message: '',
-          conversationHistory: userContext.conversationHistory,
-        })
-      );
+      // Create and start FSM actor with initial context
+      const actor = createActor(botMachine, {
+        snapshot: {
+          ...botMachine.resolveState({value: 'idle', context: {
+            userId,
+            chatId,
+            message: '',
+            aiResponse: undefined,
+            error: undefined,
+            conversationHistory: userContext.conversationHistory,
+          }}),
+        },
+      });
 
       actor.start();
 

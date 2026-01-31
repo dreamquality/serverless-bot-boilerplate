@@ -36,7 +36,7 @@ export interface ChannelMessage {
 export class TelegramAdapter implements ChannelAdapter {
   private bot: any; // TelegramBot instance
 
-  constructor(token: string) {
+  constructor(_token: string) {
     // Initialize Telegram bot
   }
 
@@ -67,7 +67,7 @@ export class TelegramAdapter implements ChannelAdapter {
 export class DiscordAdapter implements ChannelAdapter {
   private client: any; // Discord.Client instance
 
-  constructor(token: string) {
+  constructor(_token: string) {
     // Initialize Discord client
   }
 
@@ -100,7 +100,7 @@ export class DiscordAdapter implements ChannelAdapter {
 export class SlackAdapter implements ChannelAdapter {
   private client: any; // Slack WebClient instance
 
-  constructor(token: string) {
+  constructor(_token: string) {
     // Initialize Slack client
   }
 
