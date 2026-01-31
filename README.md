@@ -1,6 +1,6 @@
 # Serverless Telegram Bot Boilerplate 🤖
 
-Advanced Telegram bot boilerplate with TypeScript, XState FSM, AI integration (OpenAI/OpenRouter/Claude), and serverless deployment on Vercel. Supports multi-user contexts with persistent state storage in Supabase.
+Advanced Telegram bot boilerplate with TypeScript, XState FSM, AI integration (OpenAI/OpenRouter/Claude), and serverless deployment on **Vercel** or **Supabase Edge Functions**. Supports multi-user contexts with persistent state storage in Supabase.
 
 ## 🚀 Automated Setup (Recommended)
 
@@ -18,7 +18,7 @@ The script will:
 - ✅ Create Supabase database connection
 - ✅ Choose and configure AI provider (OpenAI/OpenRouter/Claude)
 - ✅ Test your configuration
-- ✅ Deploy to Vercel (optional)
+- ✅ **Deploy to Vercel OR Supabase Edge Functions** (your choice!)
 - ✅ Set up Telegram webhook automatically
 - ✅ Generate deployment instructions
 
@@ -173,15 +173,17 @@ serverless-bot-boilerplate/
 └── schema.sql                  # Supabase database schema
 ```
 
-## 🌐 Deploy to Vercel
+## 🌐 Deployment Options
 
-### 1. Install Vercel CLI
+### Option 1: Deploy to Vercel
+
+#### 1. Install Vercel CLI
 
 ```bash
 npm install -g vercel
 ```
 
-### 2. Deploy
+#### 2. Deploy
 
 ```bash
 vercel
@@ -189,7 +191,7 @@ vercel
 
 Follow the prompts to deploy. On first deployment, Vercel will ask you to link or create a project.
 
-### 3. Set Environment Variables
+#### 3. Set Environment Variables
 
 In your Vercel dashboard (or via CLI):
 
@@ -202,7 +204,7 @@ vercel env add OPENAI_API_KEY
 vercel env add OPENAI_MODEL
 ```
 
-### 4. Set Telegram Webhook
+#### 4. Set Telegram Webhook
 
 Once deployed, set your bot's webhook to point to your Vercel URL:
 
@@ -217,13 +219,70 @@ Or use this format:
 https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=https://your-app.vercel.app/api/webhook
 ```
 
-### 5. Verify Deployment
+#### 5. Verify Deployment
 
 Send a message to your bot on Telegram. Check Vercel logs for any issues:
 
 ```bash
 vercel logs
 ```
+
+### Option 2: Deploy to Supabase Edge Functions
+
+#### 1. Install Supabase CLI
+
+```bash
+npm install -g supabase
+```
+
+#### 2. Login to Supabase
+
+```bash
+supabase login
+```
+
+#### 3. Link Your Project
+
+```bash
+supabase link --project-ref <YOUR_PROJECT_REF>
+```
+
+Find your project reference in your Supabase URL: `https://<PROJECT_REF>.supabase.co`
+
+#### 4. Deploy Edge Function
+
+```bash
+supabase functions deploy telegram-bot --no-verify-jwt
+```
+
+#### 5. Set Environment Secrets
+
+```bash
+supabase secrets set \
+  TELEGRAM_BOT_TOKEN="your_token" \
+  AI_PROVIDER="openai" \
+  OPENAI_API_KEY="your_key" \
+  OPENAI_MODEL="gpt-3.5-turbo" \
+  SUPABASE_URL="your_supabase_url" \
+  SUPABASE_KEY="your_supabase_key"
+```
+
+#### 6. Set Telegram Webhook
+
+```bash
+curl -X POST "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://<PROJECT_REF>.supabase.co/functions/v1/telegram-bot"}'
+```
+
+#### 7. Verify Deployment
+
+Check function logs:
+```bash
+supabase functions logs telegram-bot
+```
+
+See `supabase/README.md` for detailed instructions.
 
 ## 🔧 Configuration
 

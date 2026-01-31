@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2024-01-31
+
+### Added
+- **Supabase Edge Functions support** as alternative deployment platform
+  - Deno-based edge function handler (`supabase/functions/telegram-bot/index.ts`)
+  - Automated deployment via setup script
+  - Supabase CLI integration
+  - Environment secrets management
+  - Complete documentation in `supabase/README.md`
+- Updated setup script with Supabase Edge Functions deployment option
+- Automatic webhook configuration for Supabase deployments
+- Edge function local testing support
+
+### Improved
+- Deployment flexibility: Choose between Vercel or Supabase Edge Functions
+- Enhanced documentation with both deployment options
+- Updated README with Supabase deployment instructions
+
 ## [1.1.0] - 2024-01-31
 
 ### Added

@@ -1,0 +1,22 @@
+# Supabase Configuration
+# Learn more: https://supabase.com/docs/guides/functions
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://localhost"
+
+[functions]
+# Functions will be deployed to Supabase Edge Functions
+# Each function should be in supabase/functions/<function-name>/index.ts

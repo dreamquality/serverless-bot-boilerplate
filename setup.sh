@@ -277,12 +277,13 @@ fi
 print_header "Deployment Configuration"
 
 print_info "Choose your deployment platform:\n"
-echo "  1) Vercel (recommended)"
-echo "  2) Manual deployment (I'll deploy later)"
-echo "  3) Local testing only (no deployment)"
+echo "  1) Vercel (serverless functions)"
+echo "  2) Supabase Edge Functions (edge runtime)"
+echo "  3) Manual deployment (I'll deploy later)"
+echo "  4) Local testing only (no deployment)"
 echo ""
 
-DEPLOY_CHOICE=$(read_with_default "Enter your choice (1-3)" "1")
+DEPLOY_CHOICE=$(read_with_default "Enter your choice (1-4)" "1")
 
 case $DEPLOY_CHOICE in
     1)
@@ -343,6 +344,98 @@ case $DEPLOY_CHOICE in
         fi
         ;;
     2)
+        print_info "\nDeploying to Supabase Edge Functions..."
+        
+        # Check if Supabase CLI is installed
+        if ! command_exists supabase; then
+            print_warning "Supabase CLI is not installed."
+            print_info "Install instructions: https://supabase.com/docs/guides/cli"
+            print_info "Or run: brew install supabase/tap/supabase (macOS)"
+            print_info "Or run: npm install -g supabase (npm)"
+            
+            INSTALL_SUPABASE=$(read_with_default "Install Supabase CLI via npm now? (yes/no)" "yes")
+            
+            if [ "$INSTALL_SUPABASE" = "yes" ] || [ "$INSTALL_SUPABASE" = "y" ]; then
+                print_info "Installing Supabase CLI..."
+                npm install -g supabase
+                print_success "Supabase CLI installed!"
+            else
+                print_info "Skipping Supabase deployment. Install Supabase CLI and run deployment manually."
+                DEPLOY_CHOICE=3
+            fi
+        fi
+        
+        if [ "$DEPLOY_CHOICE" = "2" ]; then
+            print_info "\nStarting Supabase Edge Functions deployment..."
+            print_warning "You'll need to log in to Supabase if not already logged in."
+            
+            # Link to Supabase project
+            print_info "Linking to your Supabase project..."
+            
+            # Extract project reference from Supabase URL
+            SUPABASE_PROJECT_REF=$(echo "$SUPABASE_URL" | sed -E 's|https://([^.]+)\.supabase\.co|\1|')
+            
+            print_info "Project Reference: $SUPABASE_PROJECT_REF"
+            
+            # Login to Supabase (if needed)
+            print_info "Please log in to Supabase..."
+            supabase login || true
+            
+            # Link project
+            print_info "Linking to project..."
+            supabase link --project-ref "$SUPABASE_PROJECT_REF" || true
+            
+            # Deploy the edge function
+            print_info "Deploying telegram-bot edge function..."
+            supabase functions deploy telegram-bot --no-verify-jwt
+            
+            if [ $? -eq 0 ]; then
+                print_success "Edge function deployed successfully!"
+                
+                # Set secrets
+                print_info "\nSetting environment secrets..."
+                
+                supabase secrets set TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" \
+                                     AI_PROVIDER="$AI_PROVIDER" \
+                                     SUPABASE_URL="$SUPABASE_URL" \
+                                     SUPABASE_KEY="$SUPABASE_KEY" \
+                                     ${OPENAI_API_KEY:+OPENAI_API_KEY="$OPENAI_API_KEY"} \
+                                     ${OPENAI_MODEL:+OPENAI_MODEL="$OPENAI_MODEL"} \
+                                     ${OPENROUTER_API_KEY:+OPENROUTER_API_KEY="$OPENROUTER_API_KEY"} \
+                                     ${OPENROUTER_MODEL:+OPENROUTER_MODEL="$OPENROUTER_MODEL"} \
+                                     ${ANTHROPIC_API_KEY:+ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY"} \
+                                     ${CLAUDE_MODEL:+CLAUDE_MODEL="$CLAUDE_MODEL"}
+                
+                print_success "Secrets configured!"
+                
+                # Get function URL
+                FUNCTION_URL="https://${SUPABASE_PROJECT_REF}.supabase.co/functions/v1/telegram-bot"
+                
+                print_info "\nYour edge function URL:"
+                echo "  $FUNCTION_URL"
+                
+                # Set webhook
+                print_info "\nSetting Telegram webhook..."
+                
+                curl -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
+                    -H "Content-Type: application/json" \
+                    -d "{\"url\": \"${FUNCTION_URL}\"}" 2>/dev/null
+                
+                print_success "Webhook set successfully!"
+                
+                # Verify webhook
+                print_info "Verifying webhook..."
+                curl -X GET "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getWebhookInfo" 2>/dev/null | python3 -m json.tool || echo ""
+                
+                print_success "\n🎉 Supabase Edge Functions deployment complete!"
+                print_info "Your bot is now running on Supabase Edge Functions"
+            else
+                print_error "Edge function deployment failed. Please check the errors above."
+                print_info "You can deploy manually with: supabase functions deploy telegram-bot"
+            fi
+        fi
+        ;;
+    3)
         print_info "\nManual deployment selected."
         print_info "When you're ready to deploy, follow these steps:"
         echo ""
@@ -354,8 +447,16 @@ case $DEPLOY_CHOICE in
         echo "     curl -X POST \"https://api.telegram.org/bot<TOKEN>/setWebhook\" \\"
         echo "          -H \"Content-Type: application/json\" \\"
         echo "          -d '{\"url\": \"https://your-app.vercel.app/api/webhook\"}'"
+        echo ""
+        echo "For Supabase Edge Functions:"
+        echo "  1. Install Supabase CLI: npm install -g supabase"
+        echo "  2. Login: supabase login"
+        echo "  3. Link project: supabase link --project-ref <YOUR_PROJECT_REF>"
+        echo "  4. Deploy: supabase functions deploy telegram-bot --no-verify-jwt"
+        echo "  5. Set secrets: supabase secrets set TELEGRAM_BOT_TOKEN=<token> ..."
+        echo "  6. Set webhook to: https://<project-ref>.supabase.co/functions/v1/telegram-bot"
         ;;
-    3)
+    4)
         print_info "\nLocal testing mode selected."
         ;;
 esac
