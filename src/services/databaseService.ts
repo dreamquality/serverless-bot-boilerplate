@@ -118,11 +118,17 @@ export class DatabaseService {
       }
 
       const updatedHistory = [...context.conversationHistory, message];
+      
+      // Keep only the last 20 messages to prevent unbounded growth
+      const MAX_HISTORY_LENGTH = 20;
+      const trimmedHistory = updatedHistory.length > MAX_HISTORY_LENGTH
+        ? updatedHistory.slice(-MAX_HISTORY_LENGTH)
+        : updatedHistory;
 
       const { error } = await this.supabase
         .from('user_states')
         .update({
-          conversation_history: updatedHistory,
+          conversation_history: trimmedHistory,
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', userId)

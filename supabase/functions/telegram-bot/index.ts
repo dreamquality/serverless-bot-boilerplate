@@ -41,6 +41,19 @@ serve(async (req) => {
       })
     }
 
+    // Validate message length
+    if (text.length > 4000) {
+      await sendTelegramMessage(
+        Deno.env.get('TELEGRAM_BOT_TOKEN') || '',
+        chatId,
+        'Message is too long. Please send a shorter message (max 4000 characters).'
+      )
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
     // Get environment variables
     const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN')
     const AI_PROVIDER = Deno.env.get('AI_PROVIDER') || 'openai'
@@ -128,15 +141,22 @@ serve(async (req) => {
       })
     }
 
-    // Update conversation history
+    // Update conversation history with limit (keep last 20 messages)
+    const MAX_HISTORY_LENGTH = 20
+    const currentHistory = userContext.conversation_history || []
     const newHistory = [
-      ...(userContext.conversation_history || []),
+      ...currentHistory,
       { role: 'user', content: text, timestamp: new Date().toISOString() },
       { role: 'assistant', content: aiResponse, timestamp: new Date().toISOString() },
     ]
+    
+    // Trim history if it exceeds the limit
+    const trimmedHistory = newHistory.length > MAX_HISTORY_LENGTH
+      ? newHistory.slice(-MAX_HISTORY_LENGTH)
+      : newHistory
 
     await updateUserContext(supabaseClient, userId, chatId, {
-      conversation_history: newHistory,
+      conversation_history: trimmedHistory,
       state: 'idle',
     })
 
@@ -229,12 +249,29 @@ async function createUserContext(client: any, context: any) {
     }
   )
   
+  if (!response.ok) {
+    let errorBody = ''
+    try {
+      errorBody = await response.text()
+    } catch {
+      // ignore errors while reading the error body
+    }
+    throw new Error(
+      `Failed to create user context: ${response.status} ${response.statusText} - ${errorBody}`,
+    )
+  }
+
   const data = await response.json()
+  
+  if (!Array.isArray(data) || data.length === 0) {
+    throw new Error('Failed to create user context: no data returned')
+  }
+  
   return data[0]
 }
 
 async function updateUserContext(client: any, userId: number, chatId: number, updates: any) {
-  await fetch(
+  const response = await fetch(
     `${client.url}/rest/v1/user_states?user_id=eq.${userId}&chat_id=eq.${chatId}`,
     {
       method: 'PATCH',
@@ -249,6 +286,18 @@ async function updateUserContext(client: any, userId: number, chatId: number, up
       }),
     }
   )
+  
+  if (!response.ok) {
+    let errorBody = ''
+    try {
+      errorBody = await response.text()
+    } catch {
+      // ignore errors while reading the error body
+    }
+    throw new Error(
+      `Failed to update user context: ${response.status} ${response.statusText} - ${errorBody}`,
+    )
+  }
 }
 
 async function getAIResponse(
@@ -276,15 +325,32 @@ async function getAIResponse(
       }),
     })
 
+    if (!response.ok) {
+      let errorBody = ''
+      try {
+        errorBody = await response.text()
+      } catch {
+        // ignore errors while reading the error body
+      }
+      throw new Error(
+        `OpenAI API error: ${response.status} ${response.statusText} - ${errorBody}`,
+      )
+    }
+
     const data = await response.json()
-    return data.choices[0]?.message?.content || 'Sorry, I could not generate a response.'
+    
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error('Invalid response from OpenAI API: missing choices or message')
+    }
+    
+    return data.choices[0].message.content || 'Sorry, I could not generate a response.'
   }
 
   throw new Error(`AI provider not supported in edge function: ${provider}`)
 }
 
 async function sendTelegramMessage(token: string, chatId: number, text: string) {
-  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+  const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -294,4 +360,16 @@ async function sendTelegramMessage(token: string, chatId: number, text: string) 
       text,
     }),
   })
+  
+  if (!response.ok) {
+    let errorBody = ''
+    try {
+      errorBody = await response.text()
+    } catch {
+      // ignore errors while reading the error body
+    }
+    console.error(
+      `Failed to send Telegram message: ${response.status} ${response.statusText} - ${errorBody}`,
+    )
+  }
 }

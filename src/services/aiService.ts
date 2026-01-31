@@ -20,6 +20,15 @@ export class AIService {
     conversationHistory: ConversationMessage[],
     newMessage: string
   ): Promise<AIResponse> {
+    // Validate inputs
+    if (!newMessage || newMessage.trim().length === 0) {
+      throw new Error('Message cannot be empty')
+    }
+
+    if (newMessage.length > 4000) {
+      throw new Error('Message is too long (max 4000 characters)')
+    }
+
     try {
       switch (this.config.provider) {
         case 'openai':
@@ -67,7 +76,12 @@ export class AIService {
       model: this.config.model,
       messages,
       temperature: 0.7,
+      max_tokens: 500,
     });
+
+    if (!completion.choices || !completion.choices[0] || !completion.choices[0].message) {
+      throw new Error('Invalid response from OpenAI API: missing choices or message')
+    }
 
     return {
       content: completion.choices[0].message.content || 'Sorry, I could not generate a response.',
@@ -113,6 +127,10 @@ export class AIService {
       }
     );
 
+    if (!response.data.choices || !response.data.choices[0] || !response.data.choices[0].message) {
+      throw new Error('Invalid response from OpenRouter API: missing choices or message')
+    }
+
     return {
       content: response.data.choices[0].message.content || 'Sorry, I could not generate a response.',
       tokensUsed: response.data.usage?.total_tokens,
@@ -153,6 +171,10 @@ export class AIService {
         },
       }
     );
+
+    if (!response.data.content || !response.data.content[0] || !response.data.content[0].text) {
+      throw new Error('Invalid response from Claude API: missing content or text')
+    }
 
     return {
       content: response.data.content[0].text || 'Sorry, I could not generate a response.',

@@ -42,6 +42,12 @@ export class BotHandler {
         return;
       }
 
+      // Validate message length
+      if (text.length > 4000) {
+        await this.bot.sendMessage(chatId, 'Message is too long. Please send a shorter message (max 4000 characters).');
+        return;
+      }
+
       logger.info(`Processing message from user ${userId}: ${text}`);
 
       // Handle special commands
