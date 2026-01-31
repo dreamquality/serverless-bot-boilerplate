@@ -1,166 +1,150 @@
 import {
+  DialogState,
   ConversationMessage,
-  UserContext,
+  AIProvider,
+  AIConfig,
   AIResponse,
   BotConfig,
-  DatabaseConfig,
-  AIConfig,
+  BotMachineContext,
+  BotMachineEvent,
 } from '../types';
 
-describe('Type Definitions', () => {
+describe('Types', () => {
+  describe('DialogState', () => {
+    it('should have valid dialog states', () => {
+      const states: DialogState[] = ['idle', 'waiting', 'processing', 'responded'];
+      states.forEach((state) => {
+        expect(['idle', 'waiting', 'processing', 'responded']).toContain(state);
+      });
+    });
+  });
+
   describe('ConversationMessage', () => {
-    it('should accept valid user message', () => {
+    it('should create valid conversation message', () => {
       const message: ConversationMessage = {
         role: 'user',
         content: 'Hello',
         timestamp: '2024-01-01T00:00:00.000Z',
       };
-
       expect(message.role).toBe('user');
       expect(message.content).toBe('Hello');
-      expect(typeof message.timestamp).toBe('string');
+      expect(message.timestamp).toBe('2024-01-01T00:00:00.000Z');
     });
 
-    it('should accept valid assistant message', () => {
-      const message: ConversationMessage = {
-        role: 'assistant',
-        content: 'Hi there!',
-        timestamp: '2024-01-01T00:00:00.000Z',
-      };
-
-      expect(message.role).toBe('assistant');
-    });
-  });
-
-  describe('UserContext', () => {
-    it('should accept valid user context', () => {
-      const context: UserContext = {
-        userId: 123,
-        chatId: 456,
-        currentState: 'idle',
-        conversationHistory: [],
-        lastInteraction: '2024-01-01T00:00:00.000Z',
-      };
-
-      expect(context.userId).toBe(123);
-      expect(context.chatId).toBe(456);
-      expect(context.currentState).toBe('idle');
-    });
-
-    it('should accept all valid states', () => {
-      const states: UserContext['currentState'][] = [
-        'idle',
-        'waiting',
-        'processing',
-        'responded',
-      ];
-
-      states.forEach((state) => {
-        const context: UserContext = {
-          userId: 1,
-          chatId: 1,
-          currentState: state,
-          conversationHistory: [],
-          lastInteraction: '2024-01-01T00:00:00.000Z',
-        };
-        expect(context.currentState).toBe(state);
-      });
-    });
-  });
-
-  describe('AIResponse', () => {
-    it('should accept valid AI response', () => {
-      const response: AIResponse = {
-        content: 'Response text',
-        provider: 'openai',
-      };
-
-      expect(response.content).toBe('Response text');
-      expect(response.provider).toBe('openai');
-    });
-
-    it('should accept all valid providers', () => {
-      const providers: AIResponse['provider'][] = ['openai', 'openrouter', 'claude'];
-
-      providers.forEach((provider) => {
-        const response: AIResponse = {
+    it('should support all roles', () => {
+      const roles: ConversationMessage['role'][] = ['user', 'assistant', 'system'];
+      roles.forEach((role) => {
+        const message: ConversationMessage = {
+          role,
           content: 'Test',
-          provider,
+          timestamp: '2024-01-01T00:00:00.000Z',
         };
-        expect(response.provider).toBe(provider);
+        expect(message.role).toBe(role);
       });
     });
   });
 
-  describe('BotConfig', () => {
-    it('should accept valid bot configuration', () => {
-      const config: BotConfig = {
-        telegramBotToken: 'test-token',
-        supabaseUrl: 'https://test.supabase.co',
-        supabaseKey: 'test-key',
-        aiProvider: 'openai',
-        openaiApiKey: 'test-openai-key',
-      };
-
-      expect(config.telegramBotToken).toBe('test-token');
-      expect(config.aiProvider).toBe('openai');
-    });
-
-    it('should accept optional API keys', () => {
-      const config: BotConfig = {
-        telegramBotToken: 'test-token',
-        supabaseUrl: 'https://test.supabase.co',
-        supabaseKey: 'test-key',
-        aiProvider: 'openrouter',
-        openRouterApiKey: 'test-key',
-      };
-
-      expect(config.openRouterApiKey).toBe('test-key');
-      expect(config.openaiApiKey).toBeUndefined();
-    });
-  });
-
-  describe('DatabaseConfig', () => {
-    it('should accept valid database configuration', () => {
-      const config: DatabaseConfig = {
-        supabaseUrl: 'https://test.supabase.co',
-        supabaseKey: 'test-key',
-      };
-
-      expect(config.supabaseUrl).toBe('https://test.supabase.co');
-      expect(config.supabaseKey).toBe('test-key');
+  describe('AIProvider', () => {
+    it('should have valid AI providers', () => {
+      const providers: AIProvider[] = ['openai', 'openrouter', 'claude'];
+      providers.forEach((provider) => {
+        expect(['openai', 'openrouter', 'claude']).toContain(provider);
+      });
     });
   });
 
   describe('AIConfig', () => {
-    it('should accept valid AI configuration for openai', () => {
+    it('should create valid AI config', () => {
       const config: AIConfig = {
         provider: 'openai',
-        openaiApiKey: 'test-key',
+        apiKey: 'test-key',
+        model: 'gpt-4',
       };
-
       expect(config.provider).toBe('openai');
-      expect(config.openaiApiKey).toBe('test-key');
+      expect(config.apiKey).toBe('test-key');
+      expect(config.model).toBe('gpt-4');
+    });
+  });
+
+  describe('AIResponse', () => {
+    it('should create valid AI response', () => {
+      const response: AIResponse = {
+        content: 'Test response',
+        tokensUsed: 100,
+        model: 'gpt-4',
+      };
+      expect(response.content).toBe('Test response');
+      expect(response.tokensUsed).toBe(100);
+    });
+  });
+
+  describe('BotConfig', () => {
+    it('should create valid bot config', () => {
+      const config: BotConfig = {
+        telegramToken: 'test-token',
+        aiConfig: {
+          provider: 'openai',
+          apiKey: 'test-key',
+          model: 'gpt-4',
+        },
+        supabase: {
+          url: 'https://test.supabase.co',
+          key: 'test-key',
+        },
+      };
+      expect(config.telegramToken).toBe('test-token');
+      expect(config.aiConfig.provider).toBe('openai');
+      expect(config.supabase.url).toBe('https://test.supabase.co');
+    });
+  });
+
+  describe('BotMachineContext', () => {
+    it('should create valid bot machine context', () => {
+      const context: BotMachineContext = {
+        userId: 123,
+        chatId: 456,
+        message: 'Hello',
+        conversationHistory: [],
+      };
+      expect(context.userId).toBe(123);
+      expect(context.chatId).toBe(456);
+      expect(context.message).toBe('Hello');
+    });
+  });
+
+  describe('BotMachineEvent', () => {
+    it('should create MESSAGE_RECEIVED event', () => {
+      const event: BotMachineEvent = {
+        type: 'MESSAGE_RECEIVED',
+        message: 'Test message',
+      };
+      expect(event.type).toBe('MESSAGE_RECEIVED');
+      expect(event.message).toBe('Test message');
     });
 
-    it('should accept valid AI configuration for openrouter', () => {
-      const config: AIConfig = {
-        provider: 'openrouter',
-        openRouterApiKey: 'test-key',
+    it('should create AI_RESPONSE_SUCCESS event', () => {
+      const event: BotMachineEvent = {
+        type: 'AI_RESPONSE_SUCCESS',
+        response: 'AI response',
       };
-
-      expect(config.provider).toBe('openrouter');
-      expect(config.openRouterApiKey).toBe('test-key');
+      expect(event.type).toBe('AI_RESPONSE_SUCCESS');
+      expect(event.response).toBe('AI response');
     });
 
-    it('should accept valid AI configuration for claude', () => {
-      const config: AIConfig = {
-        provider: 'claude',
-        claudeApiKey: 'test-key',
+    it('should create AI_RESPONSE_ERROR event', () => {
+      const event: BotMachineEvent = {
+        type: 'AI_RESPONSE_ERROR',
+        error: 'Error message',
       };
+      expect(event.type).toBe('AI_RESPONSE_ERROR');
+      expect(event.error).toBe('Error message');
+    });
 
-      expect(config.provider).toBe('claude');
-      expect(config.claudeApiKey).toBe('test-key');
+    it('should create RESET event', () => {
+      const event: BotMachineEvent = {
+        type: 'RESET',
+      };
+      expect(event.type).toBe('RESET');
     });
   });
 });

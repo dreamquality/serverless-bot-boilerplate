@@ -1,6 +1,6 @@
-import { loadConfig, validateConfig } from '../utils/config';
+import { loadConfig } from '../utils/config';
 
-describe('Config Utils', () => {
+describe('Config', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
@@ -8,119 +8,109 @@ describe('Config Utils', () => {
     process.env = { ...originalEnv };
   });
 
-  afterEach(() => {
+  afterAll(() => {
     process.env = originalEnv;
   });
 
   describe('loadConfig', () => {
-    it('should load configuration from environment variables', () => {
+    it('should load valid config with required env vars', () => {
       process.env.TELEGRAM_BOT_TOKEN = 'test-bot-token';
       process.env.SUPABASE_URL = 'https://test.supabase.co';
       process.env.SUPABASE_KEY = 'test-supabase-key';
-      process.env.AI_PROVIDER = 'openai';
       process.env.OPENAI_API_KEY = 'test-openai-key';
 
       const config = loadConfig();
 
-      expect(config.telegramBotToken).toBe('test-bot-token');
-      expect(config.supabaseUrl).toBe('https://test.supabase.co');
-      expect(config.supabaseKey).toBe('test-supabase-key');
-      expect(config.aiProvider).toBe('openai');
-      expect(config.openaiApiKey).toBe('test-openai-key');
+      expect(config.telegramToken).toBe('test-bot-token');
+      expect(config.supabase.url).toBe('https://test.supabase.co');
+      expect(config.supabase.key).toBe('test-supabase-key');
+      expect(config.aiConfig.provider).toBe('openai');
+      expect(config.aiConfig.apiKey).toBe('test-openai-key');
     });
 
-    it('should use default AI provider when not specified', () => {
+    it('should default to openai provider', () => {
       process.env.TELEGRAM_BOT_TOKEN = 'test-token';
-      delete process.env.AI_PROVIDER;
+      process.env.SUPABASE_URL = 'https://test.supabase.co';
+      process.env.SUPABASE_KEY = 'test-key';
+      process.env.OPENAI_API_KEY = 'test-key';
 
       const config = loadConfig();
 
-      expect(config.aiProvider).toBe('openai');
+      expect(config.aiConfig.provider).toBe('openai');
     });
 
-    it('should handle missing optional API keys', () => {
+    it('should throw error if TELEGRAM_BOT_TOKEN is missing', () => {
+      process.env.SUPABASE_URL = 'https://test.supabase.co';
+      process.env.SUPABASE_KEY = 'test-key';
+
+      expect(() => loadConfig()).toThrow('TELEGRAM_BOT_TOKEN is required');
+    });
+
+    it('should throw error if SUPABASE_URL is missing', () => {
       process.env.TELEGRAM_BOT_TOKEN = 'test-token';
-      delete process.env.OPENROUTER_API_KEY;
-      delete process.env.CLAUDE_API_KEY;
+      process.env.SUPABASE_KEY = 'test-key';
+
+      expect(() => loadConfig()).toThrow('SUPABASE_URL and SUPABASE_KEY are required');
+    });
+
+    it('should throw error if API key for provider is missing', () => {
+      process.env.TELEGRAM_BOT_TOKEN = 'test-token';
+      process.env.SUPABASE_URL = 'https://test.supabase.co';
+      process.env.SUPABASE_KEY = 'test-key';
+      process.env.AI_PROVIDER = 'openai';
+      delete process.env.OPENAI_API_KEY;
+
+      expect(() => loadConfig()).toThrow('API key for openai is required');
+    });
+
+    it('should support OpenRouter provider', () => {
+      process.env.TELEGRAM_BOT_TOKEN = 'test-token';
+      process.env.SUPABASE_URL = 'https://test.supabase.co';
+      process.env.SUPABASE_KEY = 'test-key';
+      process.env.AI_PROVIDER = 'openrouter';
+      process.env.OPENROUTER_API_KEY = 'test-key';
 
       const config = loadConfig();
 
-      expect(config.openRouterApiKey).toBeUndefined();
-      expect(config.claudeApiKey).toBeUndefined();
-    });
-  });
-
-  describe('validateConfig', () => {
-    it('should validate complete configuration', () => {
-      const config = {
-        telegramBotToken: 'test-token',
-        supabaseUrl: 'https://test.supabase.co',
-        supabaseKey: 'test-key',
-        aiProvider: 'openai' as const,
-        openaiApiKey: 'test-openai-key',
-      };
-
-      expect(() => validateConfig(config)).not.toThrow();
+      expect(config.aiConfig.provider).toBe('openrouter');
+      expect(config.aiConfig.apiKey).toBe('test-key');
     });
 
-    it('should throw error when telegram token is missing', () => {
-      const config = {
-        telegramBotToken: '',
-        supabaseUrl: 'https://test.supabase.co',
-        supabaseKey: 'test-key',
-        aiProvider: 'openai' as const,
-        openaiApiKey: 'test-key',
-      };
+    it('should support Claude provider', () => {
+      process.env.TELEGRAM_BOT_TOKEN = 'test-token';
+      process.env.SUPABASE_URL = 'https://test.supabase.co';
+      process.env.SUPABASE_KEY = 'test-key';
+      process.env.AI_PROVIDER = 'claude';
+      process.env.ANTHROPIC_API_KEY = 'test-key';
 
-      expect(() => validateConfig(config)).toThrow('TELEGRAM_BOT_TOKEN');
+      const config = loadConfig();
+
+      expect(config.aiConfig.provider).toBe('claude');
+      expect(config.aiConfig.apiKey).toBe('test-key');
     });
 
-    it('should throw error when supabase url is missing', () => {
-      const config = {
-        telegramBotToken: 'test-token',
-        supabaseUrl: '',
-        supabaseKey: 'test-key',
-        aiProvider: 'openai' as const,
-        openaiApiKey: 'test-key',
-      };
+    it('should include debug flag', () => {
+      process.env.TELEGRAM_BOT_TOKEN = 'test-token';
+      process.env.SUPABASE_URL = 'https://test.supabase.co';
+      process.env.SUPABASE_KEY = 'test-key';
+      process.env.OPENAI_API_KEY = 'test-key';
+      process.env.DEBUG = 'true';
 
-      expect(() => validateConfig(config)).toThrow('SUPABASE_URL');
+      const config = loadConfig();
+
+      expect(config.debug).toBe(true);
     });
 
-    it('should throw error when AI provider key is missing', () => {
-      const config = {
-        telegramBotToken: 'test-token',
-        supabaseUrl: 'https://test.supabase.co',
-        supabaseKey: 'test-key',
-        aiProvider: 'openai' as const,
-        openaiApiKey: '',
-      };
+    it('should include webhook URL if provided', () => {
+      process.env.TELEGRAM_BOT_TOKEN = 'test-token';
+      process.env.SUPABASE_URL = 'https://test.supabase.co';
+      process.env.SUPABASE_KEY = 'test-key';
+      process.env.OPENAI_API_KEY = 'test-key';
+      process.env.WEBHOOK_URL = 'https://example.com/webhook';
 
-      expect(() => validateConfig(config)).toThrow('OPENAI_API_KEY');
-    });
+      const config = loadConfig();
 
-    it('should validate openrouter configuration', () => {
-      const config = {
-        telegramBotToken: 'test-token',
-        supabaseUrl: 'https://test.supabase.co',
-        supabaseKey: 'test-key',
-        aiProvider: 'openrouter' as const,
-        openRouterApiKey: 'test-key',
-      };
-
-      expect(() => validateConfig(config)).not.toThrow();
-    });
-
-    it('should validate claude configuration', () => {
-      const config = {
-        telegramBotToken: 'test-token',
-        supabaseUrl: 'https://test.supabase.co',
-        supabaseKey: 'test-key',
-        aiProvider: 'claude' as const,
-        claudeApiKey: 'test-key',
-      };
-
-      expect(() => validateConfig(config)).not.toThrow();
+      expect(config.webhookUrl).toBe('https://example.com/webhook');
     });
   });
 });

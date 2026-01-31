@@ -20,8 +20,10 @@ describe('Logger', () => {
   describe('info', () => {
     it('should log info messages', () => {
       logger.info('Test info message');
+      expect(consoleLogSpy).toHaveBeenCalled();
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('INFO'),
+        '[INFO]',
+        expect.any(String),
         'Test info message'
       );
     });
@@ -29,7 +31,8 @@ describe('Logger', () => {
     it('should log info with data object', () => {
       logger.info('Test with data', { key: 'value' });
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('INFO'),
+        '[INFO]',
+        expect.any(String),
         'Test with data',
         { key: 'value' }
       );
@@ -39,8 +42,10 @@ describe('Logger', () => {
   describe('error', () => {
     it('should log error messages', () => {
       logger.error('Test error message');
+      expect(consoleErrorSpy).toHaveBeenCalled();
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('ERROR'),
+        '[ERROR]',
+        expect.any(String),
         'Test error message'
       );
     });
@@ -48,7 +53,8 @@ describe('Logger', () => {
     it('should log error with data', () => {
       logger.error('Test error', { error: 'details' });
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('ERROR'),
+        '[ERROR]',
+        expect.any(String),
         'Test error',
         { error: 'details' }
       );
@@ -58,8 +64,10 @@ describe('Logger', () => {
   describe('warn', () => {
     it('should log warning messages', () => {
       logger.warn('Test warning');
+      expect(consoleWarnSpy).toHaveBeenCalled();
       expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('WARN'),
+        '[WARN]',
+        expect.any(String),
         'Test warning'
       );
     });
@@ -69,8 +77,10 @@ describe('Logger', () => {
     it('should log debug messages when DEBUG is true', () => {
       process.env.DEBUG = 'true';
       logger.debug('Test debug');
+      expect(consoleLogSpy).toHaveBeenCalled();
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('DEBUG'),
+        '[DEBUG]',
+        expect.any(String),
         'Test debug'
       );
     });
