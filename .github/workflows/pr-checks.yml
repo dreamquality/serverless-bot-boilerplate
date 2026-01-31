@@ -23,8 +23,9 @@ jobs:
           echo "✅ PR title is valid"
       
       - name: Check PR has description
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
-          PR_BODY="${{ github.event.pull_request.body }}"
           if [ -z "$PR_BODY" ] || [ ${#PR_BODY} -lt 20 ]; then
             echo "⚠️  PR should have a meaningful description"
           else
@@ -32,8 +33,10 @@ jobs:
           fi
       
       - name: Check for breaking changes
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
-          if echo "${{ github.event.pull_request.body }}" | grep -qi "BREAKING"; then
+          if echo "$PR_BODY" | grep -qi "BREAKING"; then
             echo "⚠️  This PR contains breaking changes"
           fi
 
